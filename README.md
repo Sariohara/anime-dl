@@ -4,6 +4,8 @@
 
 > A version of anime-dl written in JavaScript
 
+### NOTE: This is the JS version of anime-dl, there is also a [C#](https://github.com/vrienstudios/anime-dl/) version which is more complete and is updated more regularly. For differences between these two versions please see this entry [Differences between C# and JS versions](https://github.com/vrienstudios/anime-dl/tree/CS-dev2-gh-ui)
+
 ## Table of Contents
 
 -   [Installation](#installation)
