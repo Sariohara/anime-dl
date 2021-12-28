@@ -82,7 +82,7 @@ This will get the urls for all the episodes from the series `bakemonogatari` in 
 ### HAnime
 
 ```sh
-$ node index -S "fuzzy lips" -download "%episodenumber%-%name%.%ext%"
+$ node index -S "fuzzy lips" -src hanime -download "%episodenumber%-%name%.%ext%"
 ```
 
 This will get the urls for all the episodes from the series `fuzzy lips` in HAnime and download them using node-fetch. To get more information about the templates that can be used in the download filename format use `node index`.
