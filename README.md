@@ -71,10 +71,6 @@ This will get the urls for all the episodes from the series `fuzzy lips` in HAni
 
 ## Downloading the videos natively
 
-#### WARNING: This feature is in progress and might not work as expected and as of now, only works with .mp4 and .m3u/.m3u8 files. With the .m3u/.m3u8 files downloading being unstable or buggy, although it should do the work.
-
-#### WARNING 2: Downloading videos natively in HAnime requires installing node-forge to decrypt the videos. Use "npm i node-forge" to install it.
-
 ### gogo-stream (vidstreaming)
 
 ```sh
