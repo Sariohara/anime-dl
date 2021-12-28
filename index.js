@@ -1,6 +1,7 @@
 import commands from './commands.js';
 import sources from './utils/sources.js';
 import asyncForEach from './utils/asyncForEach.js';
+import video from './utils/video.js';
 import log from './utils/log.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -75,6 +76,9 @@ if(process.argv.length <= 2) {
             }
         }
     });
+    
+    video.setParams(argsObj, defaultDownloadFormat)
+
     const level = Number(argsObj.logLevel);
     global.logger = new log(level);
     global.logger.debug(`Arguments: ${JSON.stringify(argsObj)}`);

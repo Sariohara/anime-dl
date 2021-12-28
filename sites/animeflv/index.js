@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
 
 const source = class extends EventEmitter {
-    constructor(argsObj, defaultDownloadFormat) {
+    constructor(argsObj) {
         super();
     }
 

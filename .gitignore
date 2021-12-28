@@ -1,1 +1,8 @@
 node_modules/
+
+## Ignore any video parts downloaded.
+*.ts
+*.mp4
+*.html
+*.m3u8
+*.bin

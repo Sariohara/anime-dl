@@ -22,11 +22,10 @@ const commonFetch =  {
 };
 
 const source = class extends EventEmitter {
-    constructor(argsObj, defaultDownloadFormat) {
+    constructor(argsObj) {
         super();
         this.urls = [];
         this.argsObj = argsObj;
-        this.defaultDownloadFormat = defaultDownloadFormat;
         this.slug = null;
     }
 
@@ -102,9 +101,7 @@ const source = class extends EventEmitter {
     download() {
         return video.downloadWrapper({
             urls: this.urls,
-            argsObj: this.argsObj,
-            slug: this.slug,
-            defaultDownloadFormat: this.defaultDownloadFormat
+            slug: this.slug
         })
     }
 

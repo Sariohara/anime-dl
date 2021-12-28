@@ -24,10 +24,9 @@ const commonFetch = {
 
 
 const source = class Vidstreaming extends EventEmitter {
-    constructor(argsObj, defaultDownloadFormat) {
+    constructor(argsObj) {
         super();
         this.argsObj = argsObj;
-        this.defaultDownloadFormat = defaultDownloadFormat;
         this.urls = null;
         this.id = null;
         this.episodesNumber = null;
@@ -112,9 +111,7 @@ const source = class Vidstreaming extends EventEmitter {
     async download() {
         return video.downloadWrapper({
             urls: this.urls,
-            argsObj: this.argsObj,
             slug: `${this.id}-episode-%current%`,
-            defaultDownloadFormat: this.defaultDownloadFormat
         })
     }
 

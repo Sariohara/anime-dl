@@ -1,20 +1,12 @@
 import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
+import video from '../../utils/video.js';
 
-let forge;
-(async () => {
-    try {
-        forge = await import('node-forge');
-    } catch {
-        global.logger.warn("WARNING: node-forge not installed, native downloads for HAnime will not be available. Use \"npm i node-forge\" to install it and support HAnime as it is a requiered dependency.")
-    }
-    
-})();
+const windowNuxt = "window.__NUXT__=";
 const getEpManifest = (query) => {
-    let window = {};
-    // todo: parse json in a much safer way
-    let manifest = eval(query("#__nuxt")[0].next.children[0].data);
+    // get script content and remove window.__NUXT__= and the final semicolon so it can be parsed by JSON.parse
+    let manifest = JSON.parse(query("#__nuxt")[0].next.children[0].data.slice(windowNuxt.length, -1));
     return manifest.state.data.video;
 }
 
@@ -24,13 +16,14 @@ const loadCheerioEp = async (slug) => {
     return cheerio.load(page);
 }
 
-const getEpUrl = (manifest) => `https://weeb.hanime.tv/weeb-api-cache/api/v8/m3u8s/${manifest.videos_manifest.servers[0].streams[0].id}.m3u8`
+const getEpUrl = (manifest) => manifest.videos_manifest.servers[0].streams[1].url
 const constEpUrl = `https://hanime.tv/videos/hentai/`;
 
 const source = class extends EventEmitter {
 
-    constructor(argsObj, defaultDownloadFormat) {
+    constructor() {
         super();
+        this.slug = null;
     }
 
     async getEpisodes(searchTerm) {
@@ -52,21 +45,24 @@ const source = class extends EventEmitter {
         })
 
         let json = await req.json();
-        //console.log(json)
+
         let hits = JSON.parse(json.hits);
+        let epSlug = hits[0].slug;
+        this.slug = epSlug.slice(0, -2);
+
+        global.logger.debug(this.slug)
         if(hits.length < 1) {
             return {
                 error: 'Could not find the desired term in HAnime, try with a more specific search.'
             }
         }
-        //console.log(hits)
-        
-        //let eps = $("#rc-section")[2].children[0].data;
-        //console.log(eps)
-       
-        //console.log(manifest.state.data.video)
-        //this.emit('chapterProgress', )
-        let $ = await loadCheerioEp(hits[0].slug)
+
+        this.emit('urlSlugProgress', {
+            slug: this.slug,
+            current: 1,
+            total: '-'
+        })
+        let $ = await loadCheerioEp(epSlug)
         let manifest = getEpManifest($);
         let eps;
         let urls = [];
@@ -75,44 +71,32 @@ const source = class extends EventEmitter {
         } catch {
             eps = [];
         }
-
+        this.emit('urlProgressDone');
         
         
         urls.push(getEpUrl(manifest));
 
-        await eps.asyncForEach(async ep => {
+        await eps.asyncForEach(async (ep, i) => {
+            this.emit('urlSlugProgress', {
+                slug: this.slug,
+                current: i+2,
+                total: eps.length+1
+            })
             $ = await loadCheerioEp(ep.slug);
             urls.push(getEpUrl(getEpManifest($)));
+            this.emit('urlProgressDone');
         })
-        //req = await fetch(url);
-        //let m3u8 = await req.text();
-        //let seq = 0;
-        
+
+        this.urls = urls;
+
         return urls;
     }
 
     async download() {
-        if(!forge) {
-            console.log("Skipping download, node-forge not available.");
-            return [];
-        } else {
-            /*let episodesToDownload = ['episode 1', 'episode 2']
-            let failedEpisodes = ['episode 3'];
-            await episodesToDownload.asyncForEach(async e => {
-                process.stdout.write(`Downloading ${e}... `);
-                return new Promise((res, rej) => {
-                    setTimeout(() => {
-                        process.stdout.write('Done!\n');
-                        res();
-                    }, 2000)
-                })
-                
-            })
-            return failedEpisodes;*/
-            console.log("Download coming soon.")
-            return [];
-        }
-        
+        return video.downloadWrapper({
+            slug: this.slug,
+            urls: this.urls
+        })
     }
 }
 

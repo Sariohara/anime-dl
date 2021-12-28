@@ -24,10 +24,8 @@ const source = class extends EventEmitter {
     /* 
     anime-dl passes two arguments to the constructor
       argsObj - An object with command line arguments and their values
-      defaultDownloadFormat - The format that can be used to store resulting files,
-      in case there is none specified by the user. Check help to see how to replace the %% values.
     */
-    constructor(argsObj, defaultDownloadFormat) {
+    constructor(argsObj) {
         super();
     }
 
