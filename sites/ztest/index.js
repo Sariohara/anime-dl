@@ -30,6 +30,14 @@ const source = class ExampleSource extends Source {
     }
 
     getEpisodes(episode) {
+        // If there was an error with the search
+        // you should always return the error as an object with the error parameter.
+        // The prefered way of doing that is this:
+        if(episode.error) { 
+            return episode;
+        }
+        
+        // If there were no errors, get the episode URLs normally.
         const getChapter = (episode) => {
             // do stuff to get the episode 
             this.emit('urlSlugProgress', { // emit urlSlugProgress when starting to get a new episode
