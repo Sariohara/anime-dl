@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import video from '../../utils/video.js';
+import Source from '../../utils/source.js';
 
 const URL = "https://jkanime.net/";
 
@@ -21,7 +22,7 @@ const commonFetch =  {
     "mode": "cors"
 };
 
-const source = class extends EventEmitter {
+const source = class Jkanime extends Source {
     constructor(argsObj) {
         super();
         this.urls = [];

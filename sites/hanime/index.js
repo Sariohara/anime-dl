@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import video from '../../utils/video.js';
+import Source from '../../utils/source.js';
 
 const windowNuxt = "window.__NUXT__=";
 const getEpManifest = (query) => {
@@ -19,7 +20,7 @@ const loadCheerioEp = async (slug) => {
 const getEpUrl = (manifest) => manifest.videos_manifest.servers[0].streams[1].url
 const constEpUrl = `https://hanime.tv/videos/hentai/`;
 
-const source = class extends EventEmitter {
+const source = class Hanime extends Source {
 
     constructor() {
         super();

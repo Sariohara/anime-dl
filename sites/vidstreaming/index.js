@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import { EventEmitter } from 'events';
 import video from '../../utils/video.js';
+import Source from '../../utils/source.js';
 
 
 const URL = "https://gogoplay1.com/";
@@ -23,7 +24,7 @@ const commonFetch = {
 }
 
 
-const source = class Vidstreaming extends EventEmitter {
+const source = class Vidstreaming extends Source {
     constructor(argsObj) {
         super();
         this.argsObj = argsObj;

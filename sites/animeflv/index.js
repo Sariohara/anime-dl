@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
+import Source from '../../utils/source.js';
 
-const source = class extends EventEmitter {
+const source = class AnimeFlv extends Source {
     constructor(argsObj) {
         super();
     }

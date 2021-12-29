@@ -1,5 +1,6 @@
 // Example class. You can also see the vidstreaming class for a complete example.
 import { EventEmitter } from 'events';
+import Source from '../../utils/source.js';
 
 /* 
     Required, or else the module wont be recognized by vidstreamdownloader.
@@ -9,7 +10,6 @@ import { EventEmitter } from 'events';
     Should also emit events chapterDone and chapterProgress when required.
 
     download() - This should return an array with failed urls, in case there were one.
-    In a future this class will be inherited to save some time.
 
     Events:
         "urlSlugProgress" is used for giving the user information about the download in the format of "Getting url for ${slug} (${current}/${total})...", it should emit an object with the following parameters:
@@ -20,7 +20,7 @@ import { EventEmitter } from 'events';
         "urlProgressDone" is used to let the user know that the current url is done fetching. Outputs "Done!" in green color to the console.
         
 */
-const source = class extends EventEmitter {
+const source = class extends Source {
     /* 
     anime-dl passes two arguments to the constructor
       argsObj - An object with command line arguments and their values
