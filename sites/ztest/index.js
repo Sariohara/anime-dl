@@ -20,7 +20,7 @@ import Source from '../../utils/source.js';
         "urlProgressDone" is used to let the user know that the current url is done fetching. Outputs "Done!" in green color to the console.
         
 */
-const source = class extends Source {
+const source = class ExampleSource extends Source {
     /* 
     anime-dl passes two arguments to the constructor
       argsObj - An object with command line arguments and their values
@@ -29,19 +29,36 @@ const source = class extends Source {
         super();
     }
 
-    getEpisodes(searchTerm) {
-        const getChapter = () => {
-            this.emit('urlSlugProgress', {
-                slug: 'chapter 2',
+    getEpisodes(episode) {
+        const getChapter = (episode) => {
+            // do stuff to get the episode 
+            this.emit('urlSlugProgress', { // emit urlSlugProgress when starting to get a new episode
+                slug: episode,
                 current: 2,
                 total: 2
             })
-            return 'www.animesite.com/videos/chapter2.mp4';
+            // emit urlProgressDone when done with current episode
+            this.emit('urlProgressDone')
+            return `www.animesite.com/videos/${episode}.mp4`;
         }
-        let chapterURL = getChapter(searchTerm)
-        this.emit('urlProgressDone')
+        let chapterURL = getChapter(episode)
+        
         // Once all the chapters are get, return their url
         return [chapterURL]
+    }
+
+    // This function is used by -global-search to search in all sources.
+    // It will also be used as a parameter to your source's getEpisodes() function
+    // It should return data that can be used by your own source as an argument to the getEpisodes() function.
+    // In case of errors (for example, not finding any results), you should return an object with an error parameter explaining what happened
+    search(term) {
+        if(term === 'test class') {
+            return 'chapter2';
+        }
+
+        return {
+            error: "This is a example class."
+        };
     }
 
     async download() {

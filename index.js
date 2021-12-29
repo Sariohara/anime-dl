@@ -3,6 +3,7 @@ import sources from './utils/sources.js';
 import asyncForEach from './utils/asyncForEach.js';
 import video from './utils/video.js';
 import log from './utils/log.js';
+import readline from 'readline';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -56,6 +57,8 @@ const commandHelp = (helpCmd) => {
     showHelpAndQuit();
 }
 
+const isSpecified = arg => ((arg) || (arg === null))
+
 if(process.argv.length <= 2) {
     console.log('Too few arguments.')
     showHelpAndQuit();
@@ -93,46 +96,82 @@ if(process.argv.length <= 2) {
             global.logger.error('Please specify an anime to search with -search.');
             showHelpAndQuit();
         } else {
-            if(!argsObj.source) argsObj.source = defaultSource;
-            let source = sites.find(site => site.data.name.toLowerCase() === argsObj.source.toLowerCase())
-            if(!source) {
-                global.logger.error('Invalid source. Use -lsc to check the available sources.');
-                showHelpAndQuit();
-            }
-            // TODO: Make default download format available to utils/video.js instead of giving it to the sources for them to pass it
-            source = new source.source(argsObj, defaultDownloadFormat);
+            const useSource = async (source, searchResult) => {
+                source.on('urlSlugProgress', m => {
+                    process.stdout.write(`Getting url for ${m.slug} (${m.current}/${m.total})...`)
+                })
+                source.on('urlProgressDone', () => {
+                    process.stdout.write(` \u001b[32mDone!\u001b[0m\n`)
+                })
                 
-            source.on('urlSlugProgress', m => {
-                process.stdout.write(`Getting url for ${m.slug} (${m.current}/${m.total})...`)
-            })
-            source.on('urlProgressDone', () => {
-                process.stdout.write(` \u001b[32mDone!\u001b[0m\n`)
-            })
-                
-            let episodes = await source.getEpisodes(argsObj.searchTerm);
-                
-            if(episodes.error) {
-                console.log(episodes.error);
-                showHelpAndQuit();
-            }
-
-            if(argsObj.fileName) {
-                const fs = require('fs');
-                console.log('\nSaving into ' + argsObj.fileName);
-                fs.writeFileSync(argsObj.fileName, episodes.join('\n'));
-                console.log('Done!')
-            }
-
-            if((argsObj.download) || argsObj.download === null) {
-                let failedUrls = await source.download();
-                if(failedUrls.length !== 0) {
-                    console.log('\nSome downloads failed:\n');
-                    console.log(failedUrls.join('\n'))
+                let searchRes = searchResult || (await source.search(argsObj.searchTerm))
+                let episodes = await source.getEpisodes(searchRes);
+                    
+                if(episodes.error) {
+                    console.log(episodes.error);
+                    showHelpAndQuit();
                 }
-            } else if(!argsObj.listRes) {
-                console.log(`\n\nNext step is to copy these links into a text file and run youtube-dl!\nSample command: youtube-dl.exe -o "%(autonumber)${argsObj.searchTerm}.%(ext)s" -k --no-check-certificate -i -a dwnld.txt\n\n`);
-                console.log(episodes.join('\n'))
+    
+                if(argsObj.fileName) {
+                    const fs = require('fs');
+                    console.log('\nSaving into ' + argsObj.fileName);
+                    fs.writeFileSync(argsObj.fileName, episodes.join('\n'));
+                    console.log('Done!')
+                }
+    
+                if(isSpecified(argsObj.download)) {
+                    let failedUrls = await source.download();
+                    if(failedUrls.length !== 0) {
+                        console.log('\nSome downloads failed:\n');
+                        console.log(failedUrls.join('\n'))
+                    }
+                } else if(!argsObj.listRes) {
+                    console.log(`\n\nNext step is to copy these links into a text file and run youtube-dl!\nSample command: youtube-dl.exe -o "%(autonumber)${argsObj.searchTerm}.%(ext)s" -k --no-check-certificate -i -a dwnld.txt\n\n`);
+                    console.log(episodes.join('\n'))
+                }
             }
+
+            if(isSpecified(argsObj.globalSearch)) {
+                let sources = sites;
+                if(argsObj.globalSearch !== null) {
+                    let allowedSites = argsObj.globalSearch.toLowerCase().split(',');
+                    sources = sites.filter(site => allowedSites.indexOf(site.data.name.toLowerCase()) !== -1);
+                }
+                global.logger.info(`Global searching on ${sources.map(src => src.data.name).join(', ')}`)
+                let results = [];
+                for(let site of sources) {
+                    const src = new site.source(argsObj);
+                    global.logger.info(`searching on ${site.data.name}`)
+                    const searchResult = await src.search(argsObj.searchTerm);
+                    if(!searchResult?.error) results.push({src, site, searchResult});
+                };
+                const rl = readline.createInterface({
+                    input: process.stdin,
+                    output: process.stdout
+                });
+                let selectedResult = results[0];
+                if(results.length > 1) {
+                    const askResult = () => rl.question(`Multiple results were found. Please select one:\n${results.map((result, i) => `[${i+1}] ${result.site.data.name} - ${result.searchResult?.slug ? result.searchResult.slug : result.searchResult}`).join('\n')}\nSource name or result number (1-${results.length}): `, selected => {
+                        selectedResult = results.find((result, i) => result.site.data.name.toLowerCase() === selected.toLowerCase() || ((i+1) === parseInt(selected)));
+                        if(!selectedResult) return askResult();
+                        rl.close();
+                        useSource(selectedResult.src, selectedResult.searchResult);
+                    })
+                    askResult();
+                }
+                return;
+            } else {
+                if(!argsObj.source) argsObj.source = defaultSource;
+                let source = sites.find(site => site.data.name.toLowerCase() === argsObj.source.toLowerCase())
+                if(!source) {
+                    global.logger.error('Invalid source. Use -lsc to check the available sources.');
+                    showHelpAndQuit();
+                }
+
+                source = new source.source(argsObj);
+                useSource(source);
+            }    
+            
         }
     })()   
 }

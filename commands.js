@@ -9,6 +9,15 @@ const commands = [
     },
 
     {
+        option: '-global-search',
+        aliases: ['-gs'],
+        description: 'Toggle global search to make -search search across all sites. If an argument is given, anime-dl will only search in the specified sources in the argument separated by a comma',
+        displayArgs: '[sources to only search from] (Optional)',
+        requiresArgs: true,
+        setVar: 'globalSearch'
+    },
+
+    {
         option: '-source',
         aliases: ['-sc', '-website', '-web', '-src'],
         description: 'Specify where you want to download anime from.\n\tDefaults to "vidstreaming"',

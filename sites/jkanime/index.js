@@ -30,8 +30,7 @@ const source = class Jkanime extends Source {
         this.slug = null;
     }
 
-    async getEpisodes(searchTerm) {
-        const search = await this.search(searchTerm);
+    async getEpisodes(search) {
         if(search.error) {
             return {
                 error: search.error

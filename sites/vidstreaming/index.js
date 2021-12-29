@@ -34,8 +34,7 @@ const source = class Vidstreaming extends Source {
         this.rawUrlObj = {};
     }
 
-    async getEpisodes(term) {
-        const id = await this.search(term);
+    async getEpisodes(id) {
         if(id.error) {
             return id;
         }

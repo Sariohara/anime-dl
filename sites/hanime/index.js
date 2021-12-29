@@ -55,15 +55,14 @@ const source = class Hanime extends Source {
             }
         }
 
-        return hits;
+        return hits[0];
     }
 
-    async getEpisodes(searchTerm) {
-        const hits = await this.search(searchTerm);
+    async getEpisodes(hits) {
         if(hits?.error) {
             return hits;
         }
-        let epSlug = hits[0].slug;
+        let epSlug = hits.slug;
         this.slug = epSlug.slice(0, -2);
 
         global.logger.debug(this.slug)
@@ -79,10 +78,11 @@ const source = class Hanime extends Source {
         let eps;
         let urls = [];
         try {
-            eps = manifest.hentai_franchise_hentai_videos.filter(vid => vid.slug != hits[0].slug)
+            eps = manifest.hentai_franchise_hentai_videos.filter(vid => vid.slug.startsWith(this.slug) && vid.slug !== epSlug)
         } catch {
             eps = [];
         }
+        global.logger.debug(eps)
         this.emit('urlProgressDone');
         
         
