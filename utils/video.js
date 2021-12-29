@@ -175,7 +175,7 @@ const download = (url, format, name, episodenumber, downloadRes, downloadm, exac
  * 
  * @returns An array with failed urls (empty if there were none that failed)
  */
-const downloadWrapper = async info => { // TODO: Make argsObj available to this function instead of reling on the sources
+const downloadWrapper = async info => {
     let failedUrls = [];
     const cleanLines = `\u001b[0m` + "\u001b[K\n"
     global.logger.debug(info.urls)
@@ -189,7 +189,7 @@ const downloadWrapper = async info => { // TODO: Make argsObj available to this 
             await download(
                 url, 
                 argsObj.download || defaultDownloadFormat, 
-                slug, 
+                slug,
                 i+1, 
                 argsObj.downloadRes || 'highest', 
                 downloadm,
