@@ -37,7 +37,7 @@ const source = class Vidstreaming extends Source {
     async getEpisodes(term) {
         const id = await this.search(term);
         if(id.error) {
-            return { error: id.error };
+            return id;
         }
         const req = await fetch(`${URL}/videos/${id}-episode-1`, commonFetch);
         const episodeHtml = await req.text();

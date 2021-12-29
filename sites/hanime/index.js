@@ -27,13 +27,13 @@ const source = class Hanime extends Source {
         this.slug = null;
     }
 
-    async getEpisodes(searchTerm) {
+    async search(term) {
         let req = await fetch("https://search.htv-services.com/", {
             "headers": {
                 "content-type": "application/json"
             },
             "body": JSON.stringify({
-                "search_text": searchTerm,
+                "search_text": term,
                 "tags": [],
                 "tags_mode": "AND",
                 "brands": [],
@@ -48,15 +48,26 @@ const source = class Hanime extends Source {
         let json = await req.json();
 
         let hits = JSON.parse(json.hits);
-        let epSlug = hits[0].slug;
-        this.slug = epSlug.slice(0, -2);
 
-        global.logger.debug(this.slug)
         if(hits.length < 1) {
             return {
                 error: 'Could not find the desired term in HAnime, try with a more specific search.'
             }
         }
+
+        return hits;
+    }
+
+    async getEpisodes(searchTerm) {
+        const hits = await this.search(searchTerm);
+        if(hits?.error) {
+            return hits;
+        }
+        let epSlug = hits[0].slug;
+        this.slug = epSlug.slice(0, -2);
+
+        global.logger.debug(this.slug)
+        
 
         this.emit('urlSlugProgress', {
             slug: this.slug,
