@@ -90,7 +90,7 @@ if(process.argv.length <= 2) {
         if(argsObj.helpCommand !== undefined) {
             typeof argsObj.helpCommand == "string" ? commandHelp(argsObj.helpCommand) : displayCommands();
         } else if(argsObj.lsc) {
-            global.logger.info(`Sources:\n\n${sites.map(site => `${Object.keys(site.data).map(key => `${key === 'name' ? '- ' : '\t'+key.charAt(0).toUpperCase() + key.slice(1)+': '}${site.data[key]}`).join('\n')}`).join('\n\n')}`)
+            global.logger.info(`Sources:\n\n${sites.map(site => `${Object.keys(site.data).map(key => key.startsWith("_") ? null : `${key === 'name' ? '- ' : '\t'+key.charAt(0).toUpperCase() + key.slice(1)+': '}${site.data[key]}`).filter(k => k !== null).join('\n')}`).join('\n\n')}`)
             return;
         } else if(!argsObj.searchTerm) {
             global.logger.error('Please specify an anime to search with -search.');

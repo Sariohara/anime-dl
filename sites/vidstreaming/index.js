@@ -126,7 +126,7 @@ const source = class Vidstreaming extends Source {
 
 const data = {
     name: 'Vidstreaming',
-    website: 'vidstreaming.io',
+    website: 'gogoplay1.com',
     description: 'Vidstreaming - Watch anime online anywhere',
     language: 'English'
 }
