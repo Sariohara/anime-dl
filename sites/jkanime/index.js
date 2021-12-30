@@ -111,7 +111,7 @@ const source = class Jkanime extends Source {
     async search(term) {
         if(URLRegex.test(term)) {
             return {
-                slug: term.replace(URLRegex, '').split('/')[1]
+                slug: term.replace(/(http(s|):\/\/)/gm, '').split('/')[1]
             }
         }
         const req = await fetch(`${URL}/ajax/ajax_search/?q=${term.split(' ').join('%20')}`, commonFetch);
