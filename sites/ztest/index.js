@@ -96,7 +96,14 @@ const source = class ExampleSource extends Source {
 */
 const data = {
     name: 'mysitename',
-    description: 'Cool anime site'
+    description: 'Cool anime site',
+    // modules.exports.data can also have private parameters that start with _. These parameters will not be displayed in -list-sources
+    // The usage for this type of parameters is to have a _SEARCHREGEX parameter that has a regular expression 
+    // made with the utils/url.js makeURLRegex() function which should also be the same regex used in 
+    // your sources' search function. This parameter is used for autodetecting an URL's source when a source
+    // is not specified by the user.
+    // If this sounds too confusing, look at the other sources code for an idea of how this is used.
+    _SEARCHREGEX: /www.testregexanimesite.com/
 }
 
 export default { source, data }; 
