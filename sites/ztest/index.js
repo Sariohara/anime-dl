@@ -90,14 +90,14 @@ const source = class ExampleSource extends Source {
 }
 
 /* 
-    module.exports.data is optional.
+    data export is optional.
     it also might have as much parameters as you want. They will all be displayed on the 
     -lsc.
 */
 const data = {
     name: 'mysitename',
     description: 'Cool anime site',
-    // modules.exports.data can also have private parameters that start with _. These parameters will not be displayed in -list-sources
+    // data export can also have private parameters that start with _. These parameters will not be displayed in -list-sources
     // The usage for this type of parameters is to have a _SEARCHREGEX parameter that has a regular expression 
     // made with the utils/url.js makeURLRegex() function which should also be the same regex used in 
     // your sources' search function. This parameter is used for autodetecting an URL's source when a source
@@ -106,4 +106,6 @@ const data = {
     _SEARCHREGEX: /www.testregexanimesite.com/
 }
 
+
+// Export the source and data as a module for it to be used by anime-dl
 export default { source, data }; 
