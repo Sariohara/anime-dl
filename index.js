@@ -170,8 +170,8 @@ if(process.argv.length <= 2) {
                         process.stdout.write(overwriteLine + info + 'Autodetecting...');
                         source = sites.find(site => site.data._SEARCHREGEX?.test(argsObj.searchTerm));
                         if(!source) {
+                            argsObj.source = defaultSource;
                             process.stdout.write(`${overwriteLine}[info] Could not find a suitable source for this url. Using default source ${defaultSource}\n`); // todo: make this use some sort of logger template
-                            argsObj.source = defaultSource
                         } else {
                             process.stdout.write(`${overwriteLine}${info}Using ${source.data.name}\n`);
                         }
