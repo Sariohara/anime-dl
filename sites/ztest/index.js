@@ -59,7 +59,9 @@ const source = class ExampleSource extends Source {
     // It will also be used as a parameter to your source's getEpisodes() function
     // It should return data that can be used by your own source as an argument to the getEpisodes() function.
     // In case of errors (for example, not finding any results), you should return an object with an error parameter explaining what happened
+    // To support URLs for searching see utils/url.js and other downloaders' search function for examples.
     search(term) {
+        // Instead of doing this you would be doing a request to the site's search page, parsing it, and returning the values needed.
         if(term === 'test class') {
             return 'chapter2';
         }

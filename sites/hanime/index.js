@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import video from '../../utils/video.js';
 import Source from '../../utils/source.js';
+import { makeURLRegex } from '../../utils/url.js';
 
 const windowNuxt = "window.__NUXT__=";
 const getEpManifest = (query) => {
@@ -10,15 +11,16 @@ const getEpManifest = (query) => {
     let manifest = JSON.parse(query("#__nuxt")[0].next.children[0].data.slice(windowNuxt.length, -1));
     return manifest.state.data.video;
 }
-
+const constEpUrl = `https://hanime.tv/videos/hentai`;
+const epURLRegex = makeURLRegex(constEpUrl);
 const loadCheerioEp = async (slug) => {
-    let req = await fetch(constEpUrl + slug);
+    let req = await fetch(constEpUrl + '/' + slug);
     let page = await req.text();
     return cheerio.load(page);
 }
 
 const getEpUrl = (manifest) => manifest.videos_manifest.servers[0].streams[1].url
-const constEpUrl = `https://hanime.tv/videos/hentai/`;
+
 
 const source = class Hanime extends Source {
 
@@ -28,6 +30,11 @@ const source = class Hanime extends Source {
     }
 
     async search(term) {
+        if(epURLRegex.test(term)) {
+            return {
+                slug: term.split('/').slice(-1)[0]
+            }
+        }
         let req = await fetch("https://search.htv-services.com/", {
             "headers": {
                 "content-type": "application/json"
@@ -63,11 +70,10 @@ const source = class Hanime extends Source {
             return hits;
         }
         let epSlug = hits.slug;
-        this.slug = epSlug.slice(0, -2);
+        this.slug = epSlug.split('-').slice(0, -1).join('-');
 
         global.logger.debug(this.slug)
         
-
         this.emit('urlSlugProgress', {
             slug: this.slug,
             current: 1,
@@ -82,7 +88,7 @@ const source = class Hanime extends Source {
         } catch {
             eps = [];
         }
-        global.logger.debug(eps)
+        global.logger.debug(`${eps.length}+1 episodes`)
         this.emit('urlProgressDone');
         
         

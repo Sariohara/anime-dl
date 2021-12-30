@@ -3,8 +3,10 @@ import cheerio from 'cheerio';
 import fetch from 'node-fetch';
 import video from '../../utils/video.js';
 import Source from '../../utils/source.js';
+import { makeURLRegex } from '../../utils/url.js';
 
-const URL = "https://jkanime.net/";
+const URL = "https://jkanime.net";
+const URLRegex = makeURLRegex(URL);
 
 const commonFetch =  {
     "credentials": "include",
@@ -16,7 +18,7 @@ const commonFetch =  {
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
-        "Referer": "https://jkanime.net/"
+        "Referer": URL + '/'
     },
     "method": "GET",
     "mode": "cors"
@@ -39,7 +41,7 @@ const source = class Jkanime extends Source {
         const { slug } = search;
         this.slug = slug;
         global.logger.debug(`slug is ${slug}`);
-        const animeURL = `${URL}${slug}/`;
+        const animeURL = `${URL}/${slug}`;
         const animePageReq = await fetch(animeURL, commonFetch);
         const animePage = await animePageReq.text();
         let $ = cheerio.load(animePage);
@@ -56,7 +58,7 @@ const source = class Jkanime extends Source {
                         current: i,
                         total: episodes
                     })
-                    const episodePageReq = await fetch(`${animeURL}${i}`, commonFetch)
+                    const episodePageReq = await fetch(`${animeURL}/${i}`, commonFetch)
                     const episodePage = await episodePageReq.text();
                     const url = episodePage.split(`video[1] = '`)[1].split('</iframe>')[0].split(`"`)[3];
                     const iframeReq = await fetch(url, commonFetch);
@@ -71,16 +73,17 @@ const source = class Jkanime extends Source {
                         
                     });
                     
-                    const redirectPostReq = await fetch(`${URL}gsplay/redirect_post.php`, makePostData(`data=${redirectData}`))
+                    const redirectPostReq = await fetch(`${URL}/gsplay/redirect_post.php`, makePostData(`data=${redirectData}`))
                     const dataHash = redirectPostReq.url.split("#")[1];
                     global.logger.debug(`data hash: ${dataHash}`)
                     const makeAPIReq = async () => {
-                        const apiReq = await fetch(`${URL}gsplay/api.php`, makePostData(`v=${dataHash}`))
+                        const apiReq = await fetch(`${URL}/gsplay/api.php`, makePostData(`v=${dataHash}`))
                         const apiJson = await apiReq.json();
                         global.logger.debug(apiJson);
                         if(apiJson.sleep) {
-                            if(isNaN(apiJson.sleep)) apiJson.sleep = 3000;
                             global.logger.debug(`asked to sleep ${apiJson.sleep}`);
+                            if(isNaN(apiJson.sleep)) apiJson.sleep = 3000;
+                            process.stdout.write(` Waiting for ${apiJson.sleep}ms...`)
                             return setTimeout(makeAPIReq, apiJson.sleep);
                         }
                         this.urls.push(apiJson.file);
@@ -106,7 +109,12 @@ const source = class Jkanime extends Source {
     }
 
     async search(term) {
-        const req = await fetch(`${URL}ajax/ajax_search/?q=${term.split(' ').join('%20')}`, commonFetch);
+        if(URLRegex.test(term)) {
+            return {
+                slug: term.replace(URLRegex, '').split('/')[1]
+            }
+        }
+        const req = await fetch(`${URL}/ajax/ajax_search/?q=${term.split(' ').join('%20')}`, commonFetch);
         const { animes } = await req.json();
         if(animes.length < 1) {
             return {

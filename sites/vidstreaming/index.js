@@ -1,12 +1,13 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
-import { EventEmitter } from 'events';
 import video from '../../utils/video.js';
 import Source from '../../utils/source.js';
+import { makeURLRegex } from '../../utils/url.js';
 
-
-const URL = "https://gogoplay1.com/";
-const DOWNLOAD_URL = "https://streamani.net/download"
+const URL = "https://gogoplay1.com";
+const DOWNLOAD_URL = "https://gogoplay1.com/download"
+const VIDEO_URL = URL + '/videos'
+const videoURLRegex = makeURLRegex(VIDEO_URL);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36 Edg/94.0.992.50";
 const commonFetch = {
     "headers": {
@@ -31,14 +32,15 @@ const source = class Vidstreaming extends Source {
         this.urls = null;
         this.id = null;
         this.episodesNumber = null;
-        this.rawUrlObj = {};
+        this.rawUrlObj = [];
     }
 
     async getEpisodes(id) {
         if(id.error) {
             return id;
         }
-        const req = await fetch(`${URL}/videos/${id}-episode-1`, commonFetch);
+        global.logger.debug(`id is ${id}`);
+        const req = await fetch(`${VIDEO_URL}/${id}-episode-1`, commonFetch);
         const episodeHtml = await req.text();
         const $ = cheerio.load(episodeHtml);
         let episodesNumber = Number($('ul.listing.items.lists')[0].children.filter(tag => tag.attribs ? tag.attribs.class.includes('video-block') ? true : false : false).length);
@@ -55,54 +57,42 @@ const source = class Vidstreaming extends Source {
                 current: i+1,
                 total: episodesNumber
             })
-            let epPage = await fetch(`${URL}/videos/${epSlug}`, commonFetch);
+            let epPage = await fetch(`${VIDEO_URL}/${epSlug}`, commonFetch);
             let epHtml = await epPage.text();
             let ep$ = cheerio.load(epHtml);
             let downloadQuery = ep$('iframe')[0].attribs.src.split('?')[1]
             let downloadReq = await fetch(`${DOWNLOAD_URL}?${downloadQuery}`, commonFetch);
-            
+            global.logger.debug(`${DOWNLOAD_URL}?${downloadQuery}`);
             let dwnHtml = await downloadReq.text();
             let dwn$ = cheerio.load(dwnHtml);
             
-            let downloadURL = dwn$(".dowload").filter((idx, div) => div.children[0].children[0].data.includes("Download Xstreamcdn"))[0].children[0].attribs.href;
-            
-            let fileURLReq = await fetch(downloadURL.replace("/f/", "/api/source/"), {
-                // No idea whether these headers affect the download
-                // or not but I wont touch them just in case ..
-                headers: {
-                    "x-requested-with": "XMLHttpRequest",
-                    "origin": downloadURL.split('/')[0],
-                    "referer": downloadURL,
-                    "accept-encoding": "gzip, deflate, br",
-                    "user-agent": UA
-                },
-                method: "POST"
-            });
-            let fileURLJson = await fileURLReq.json();
-            let { data } = fileURLJson;
-            this.rawUrlObj = data;
-
-            let availableResolutions = data.map(obj => [obj.label, obj.file]).sort((a, b) => {
-                if(Number(a[0].slice(0, a.length-1)) < Number(b[0].slice(0, b.length-1))) return 1
-                return -1
-            });
-            let highestRes = availableResolutions[0];
-            let argRes = availableResolutions.filter(res => res[0] === this.argsObj.downloadRes)[0];
-            let desiredRes = this.argsObj.downloadRes == 'highest' || !this.argsObj.downloadRes ? highestRes : argRes ? argRes : (() => { process.stdout.write(` "${this.argsObj.downloadRes}" resolution not avaliable, defaulting to highest (${highestRes[0]})... `); return highestRes })();
-            urls.push(desiredRes[1]);
+            let downloadURL = Array.from(dwn$(".dowload").slice(0, 4))
+            let availableResolutions = downloadURL.map((el, i) => [el.children[0].attribs.href, el.children[0].children[0].data.split('Download\n            (')[1].split('P - mp4)')[0]]);
+            this.rawUrlObj.push(availableResolutions);
+            let argRes = availableResolutions.filter(res => (res[1] === this.argsObj.downloadRes) || ((res[1] + 'p') === this.argsObj.downloadRes))[0];
+            const highestRes = availableResolutions[availableResolutions.length-1];
+            let desiredRes = (this.argsObj.downloadRes == 'highest') || (!this.argsObj.downloadRes)
+                 ? highestRes 
+                 : argRes ? argRes : 
+                    (() => { 
+                        process.stdout.write(` "${this.argsObj.downloadRes}" resolution not avaliable, defaulting to highest (${highestRes[1]})... `); 
+                        return highestRes 
+                    })();
+            urls.push(desiredRes[0]);    
             this.emit('urlProgressDone');
         }
         if(this.argsObj.listRes) {
             let resolutions = [];
-            await urls.asyncForEach(async url => {
+            await urls.asyncForEach(async (url, i) => {
                 if((!url.endsWith('.m3u8'))) {
-                    resolutions.push(this.rawUrlObj.map(url => url.label).join(', '));
+                    const urlRes = this.rawUrlObj[i];
+                    resolutions.push(urlRes.map(res => `\n\t${res[1]}p (${res[0]})`).join(''));
                     return;
                 }
                 let videoRes = await video.listResolutions(url)
                 resolutions.push(videoRes);
             })
-            console.log('\n\n'+resolutions.map((resolution, i) => `Available resolutions for episode #${i+1}: ${resolution}`).join('\n'))
+            console.log('\n\n'+resolutions.map((resolution, i) => `Available resolutions for episode #${i+1}: ${resolution}`).join('\n\n'))
         }
         this.urls = [...urls];
         return urls;
@@ -116,7 +106,10 @@ const source = class Vidstreaming extends Source {
     }
 
     async search(term) {
-       const req = await fetch(`${URL}/search.html?keyword=${term.split(' ').join('+')}`, commonFetch);
+        if(videoURLRegex.test(term)) {
+            return term.split('/').slice(-1)[0].split('-episode')[0];
+        }
+        const req = await fetch(`${URL}/search.html?keyword=${term.split(' ').join('+')}`, commonFetch);
         const content = await req.text();
         const $ = cheerio.load(content);
         try {
