@@ -127,7 +127,8 @@ const data = {
     name: 'Hanime',
     website: 'hanime.tv',
     description: 'Watch hentai online free download HD on mobile phone tablet laptop desktop. Stream online, regularly released uncensored, subbed, in 720p and 1080p!',
-    language: 'English'
+    language: 'English',
+    _SEARCHREGEX: epURLRegex
 }
 
 export default { source, data }

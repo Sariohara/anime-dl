@@ -3,10 +3,12 @@
  * For example usages, see other downloaders' search functions.
  */
 const makeURLRegex = (url) => new RegExp(
+    '('+
     url
-    .replace(/(http(s|))/, 'http(s|)')
-    .replace(/\./gm, '\\.')
-    .replace(/\//gm, '\\/')
-, "gm");
+    .replace(/(?:http(?:s|))/, '?:http(?:s|)')
+    .replace(/\./, '\\.')
+    .replace(/\//, '\\/')
+    +')'
+);
 
 export { makeURLRegex };

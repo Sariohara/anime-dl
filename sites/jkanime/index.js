@@ -111,7 +111,7 @@ const source = class Jkanime extends Source {
     async search(term) {
         if(URLRegex.test(term)) {
             return {
-                slug: term.replace(/(http(s|):\/\/)/gm, '').split('/')[1]
+                slug: term.replace(/(http(s|):\/\/)/, '').split('/')[1]
             }
         }
         const req = await fetch(`${URL}/ajax/ajax_search/?q=${term.split(' ').join('%20')}`, commonFetch);
@@ -129,7 +129,8 @@ const data = {
     name: 'Jkanime',
     website: URL,
     description: 'La mejor pagina para Ver Anime Online Gratis, mira los ultimos capitulos de los animes del momento sin ninguna restriccion | ver Online y descargar',
-    language: 'Español Sub/Dub'
+    language: 'Español Sub/Dub',
+    _SEARCHREGEX: URLRegex
 }
 
 export default { source, data }

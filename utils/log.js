@@ -5,24 +5,25 @@ class Logger {
         this.logLevel = logLevel;
     }
     
-    inspect(msg) {
-        return typeof msg !== "string" ? util.inspect(msg) : msg
+    inspect(msgs) {
+        return (msgs.map(msg => typeof msg !== "string" ? util.inspect(msg) : msg).join(' '));
+    }
+
+
+    debug(...msgs) {
+        if(this.logLevel >= 2) console.log(`[debug] ${this.inspect(msgs)}`)
     }
     
-    debug(msg) {
-        if(this.logLevel >= 2) console.log(`[debug] ${this.inspect(msg)}`)
+    info(...msgs) {
+        console.log(`[info] ${this.inspect(msgs)}`)
     }
     
-    info(msg) {
-        console.log(`[info] ${this.inspect(msg)}`)
+    error(...msgs) {
+        console.warn(`[error] ${this.inspect(msgs)}`)
     }
     
-    error(msg) {
-        console.warn(`[error] ${this.inspect(msg)}`)
-    }
-    
-    warn(msg) {
-        if(this.logLevel >= 1) console.warn(`[warn] ${this.inspect(msg)}`)
+    warn(...msgs) {
+        if(this.logLevel >= 1) console.warn(`[warn] ${this.inspect(msgs)}`)
     }
 }
 

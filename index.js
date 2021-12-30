@@ -161,8 +161,26 @@ if(process.argv.length <= 2) {
                 }
                 return;
             } else {
-                if(!argsObj.source) argsObj.source = defaultSource;
-                let source = sites.find(site => site.data.name.toLowerCase() === argsObj.source.toLowerCase())
+                let source;
+                if(!argsObj.source) {
+                    if(/(^http(s|):\/\/)/.test(argsObj.searchTerm)) {
+                        // bigger todo: make a internal library for interacting with the terminal. doing it this way is extremely painful, utils/video.js suffers from this too.
+                        const overwriteLine = `\x1B[2K\r`;
+                        const info = `[info] URL found and no source has been provided. `; // todo: make this use some sort of logger template
+                        process.stdout.write(overwriteLine + info + 'Autodetecting...');
+                        source = sites.find(site => site.data._SEARCHREGEX?.test(argsObj.searchTerm));
+                        if(!source) {
+                            process.stdout.write(`${overwriteLine}[info] Could not find a suitable source for this url. Using default source ${defaultSource}\n`); // todo: make this use some sort of logger template
+                            argsObj.source = defaultSource
+                        } else {
+                            process.stdout.write(`${overwriteLine}${info}Using ${source.data.name}\n`);
+                        }
+                    } else {
+                        argsObj.source = defaultSource;
+                        global.logger.info(`Using default source ${defaultSource}`);
+                    }
+                } 
+                source = !source ? sites.find(site => site.data.name.toLowerCase() === argsObj.source.toLowerCase()) : source;
                 if(!source) {
                     global.logger.error('Invalid source. Use -lsc to check the available sources.');
                     showHelpAndQuit();

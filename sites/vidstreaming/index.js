@@ -128,7 +128,8 @@ const data = {
     name: 'Vidstreaming',
     website: 'gogoplay1.com',
     description: 'Vidstreaming - Watch anime online anywhere',
-    language: 'English'
+    language: 'English',
+    _SEARCHREGEX: videoURLRegex
 }
 
 export default { source, data }
