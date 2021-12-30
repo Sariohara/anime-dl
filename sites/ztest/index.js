@@ -91,8 +91,8 @@ const source = class ExampleSource extends Source {
 
 /* 
     data export is optional.
-    it also might have as much parameters as you want. They will all be displayed on the 
-    -lsc.
+    it also might have as much parameters as you want. 
+    They will all be displayed on the -lsc.
 */
 const data = {
     name: 'mysitename',
